@@ -17,7 +17,7 @@ function Login() {
   const onClickLogin = () => {
     console.log("email: " + email + " passowrd:" + password);
     axios
-      .post("/api/v1/login", {
+      .post("http://localhost:8080/api/v1/login", {
         email: email,
         password: password,
       })
