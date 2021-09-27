@@ -56,6 +56,10 @@ function Login() {
       <div>
         <Link to="/signup">Signup</Link>
       </div>
+
+      <div>
+        <Link to="/upload">Upload</Link>
+      </div>
     </div>
   );
 }
