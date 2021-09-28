@@ -9,7 +9,7 @@ function Upload(){
   };
   const onClickUpload = () => {
     const formData = new FormData();
-    formData.append('data',img)
+    formData.append('image',img)
     axios
       .post("http://localhost:8080/api/v1/upload",
         formData
@@ -38,7 +38,7 @@ function Upload(){
         </form>
       </div>
       <div>
-        <img src={imgUrl} alt="upload img"/>
+        <img src={imgUrl} alt="upload img" width="70%"/>
       </div>
     </div>
   );
