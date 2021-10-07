@@ -60,6 +60,10 @@ function Login() {
       <div>
         <Link to="/upload">Upload</Link>
       </div>
+
+      <div>
+        <Link to="/upload-lecture">UploadLecture</Link>
+      </div>
     </div>
   );
 }

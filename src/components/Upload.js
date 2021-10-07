@@ -11,7 +11,7 @@ function Upload(){
     const formData = new FormData();
     formData.append('image',img)
     axios
-      .post("http://localhost:8080/api/v1/upload",
+      .post("http://localhost:8080/api/v1/images/1",
         formData
       , {
         headers: {
