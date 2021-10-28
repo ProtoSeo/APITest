@@ -4,6 +4,7 @@ import Login from "./Login";
 import Signup from "./Signup";
 import Upload from "./Upload";
 import UploadLecture from "./UploadLecture";
+import MeetingRoom from "./MeetingRoom";
 
 class App extends Component{
   render() {
@@ -13,6 +14,7 @@ class App extends Component{
             <Route path="/signup" component={Signup}/>
             <Route path="/upload" component={Upload}/>
             <Route path="/upload-lecture" component={UploadLecture}/>
+            <Route path="/meeting-room" component={MeetingRoom}/>
         </Switch>
     );
 }
