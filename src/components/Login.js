@@ -66,7 +66,7 @@ function Login() {
       </div>
 
       <div>
-        <Link to="/meeting-room">MeetingRoom</Link>
+        <Link to="/create-room">CreateRoom</Link>
       </div>
     </div>
   );
