@@ -6,6 +6,7 @@ import Upload from "./Upload";
 import UploadLecture from "./UploadLecture";
 import MeetingRoom from "./MeetingRoom";
 import CreateRoom from "./CreateRoom";
+import Notification from "./Notification";
 
 class App extends Component{
   render() {
@@ -17,6 +18,7 @@ class App extends Component{
             <Route path="/upload-lecture" component={UploadLecture}/>
             <Route path="/create-room" component={CreateRoom}/>
             <Route path="/meeting-room" component={MeetingRoom}/>
+            <Route path="/notifications" component={Notification}/>
         </Switch>
     );
 }
