@@ -72,6 +72,9 @@ function Login() {
       <div>
         <Link to="/notifications">Notifications</Link>
       </div>
+      <div>
+        <Link to="/chatting">Chatting</Link>
+      </div>
     </div>
   );
 }
