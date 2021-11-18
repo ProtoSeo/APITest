@@ -4,13 +4,13 @@ import styled from 'styled-components';
 const Container = styled.div`
 	position: relative;
 	display: inline-block;
-	width: 240px;
+	width: 320px;
 	height: 270px;
 	margin: 5px;
 `;
 
 const VideoContainer = styled.video`
-	width: 240px;
+	width: 320px;
 	height: 240px;
 	background-color: black;
 `;
