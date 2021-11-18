@@ -7,7 +7,6 @@ const peerConnectionConfig = {
     { urls: "stun:stun.l.google.com:19302" },
   ],
 };
-
 function MeetingRoom({ location }) {
   const [users, setUsers] = useState([]);
   const [localVideoState, setLocalVideoState] = useState(true);
@@ -15,28 +14,44 @@ function MeetingRoom({ location }) {
   const pcsRef = useRef({});
   const socketRef = useRef(null);
   const localVideoRef = useRef(null);
+  const localScreenVideoRef = useRef(null);
   const localStreamRef = useRef(null);
+  const localScreenStreamRef = useRef(null);
   const userId = location.state.userId;
   const roomId = location.state.roomId;
+  const localVideoTracks = useRef(null);
 
   const handleVideoState = () => {
-    // TODO
     setLocalVideoState(!localVideoState);
     if (localVideoState) {
       console.log("video off");
-      // localVideoTracks = localStream.getVideoTracks();
-      // localVideoTracks.forEach(track => localStream.removeTrack(track));
+      localVideoTracks.current = localStreamRef.current.getVideoTracks();
+      localVideoTracks.current.forEach((track) =>
+        localStreamRef.current.removeTrack(track)
+      );
     } else {
       console.log("video on");
-      // localVideoTracks.forEach(track => localStream.addTrack(track));
+      localVideoTracks.current.forEach((track) =>
+        localStreamRef.current.addTrack(track)
+      );
     }
   };
 
+  // TODO:
   const handleAudioState = () => {
-    // TODO
     setLocalAudioState(!localAudioState);
     localVideoRef.current.muted = !localAudioState;
     console.log(localAudioState, localVideoRef.current.muted);
+  };
+
+  const leaveMeetingRoom = () => {
+    const msgJSON = JSON.stringify({
+      userId: userId,
+      roomId: roomId,
+      type: "disconnect",
+    });
+    socketRef.current.send(msgJSON);
+    
   };
 
   const getLocalStream = useCallback(async () => {
@@ -44,24 +59,36 @@ function MeetingRoom({ location }) {
       const localStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: {
-          width: 240,
+          width: 320,
           height: 240,
         },
       });
       localStreamRef.current = localStream;
       if (localVideoRef.current) localVideoRef.current.srcObject = localStream;
       if (!socketRef.current) return;
-      // ------------------------------------------------------------------------------
-      // socketRef.current.emit("join", {
-      //   room: "1234",
-      //   email: "sample@naver.com",
-      // });
       const msgJSON = JSON.stringify({
         roomId: roomId,
         userId: userId,
-        type:"join"
-      })
+        type: "join",
+      });
       socketRef.current.send(msgJSON);
+    } catch (e) {
+      console.log(`getUserMedia error: ${e}`);
+    }
+  }, []);
+
+  const getLocalScreenStream = useCallback(async () => {
+    try {
+      const localScreenStream = await navigator.mediaDevices.getDisplayMedia({
+        audio: true,
+        video: {
+          width: 320,
+          height: 240,
+        },
+      });
+      localScreenStreamRef.current = localScreenStream;
+      if (localScreenVideoRef.current)
+      localScreenVideoRef.current.srcObject = localScreenStream;
     } catch (e) {
       console.log(`getUserMedia error: ${e}`);
     }
@@ -75,18 +102,12 @@ function MeetingRoom({ location }) {
       pc.onicecandidate = (e) => {
         if (!(socketRef.current && e.candidate)) return;
         console.log("onicecandidate");
-        // --------------------------------------------------------------------
-        // socketRef.current.emit("candidate", {
-        //   candidate: e.candidate,
-        //   candidateSendID: socketRef.current.id,
-        //   candidateReceiveID: socketId,
-        // });
         const msgJSON = JSON.stringify({
-          userId:userId,
-          receiverId:receiverId,
-          roomId:roomId,
-          type:"candidate",
-          candidate: e.candidate
+          userId: userId,
+          receiverId: receiverId,
+          roomId: roomId,
+          type: "candidate",
+          candidate: e.candidate,
         });
         socketRef.current.send(msgJSON);
       };
@@ -132,7 +153,7 @@ function MeetingRoom({ location }) {
       if (!localStreamRef.current) return;
       const pc = createPeerConnection(user.socketId, user.userId); // socketId, email
       if (!(pc && socketRef.current)) return;
-      console.log(pcsRef.current)
+      console.log(pcsRef.current);
       pcsRef.current = { ...pcsRef.current, [user.socketId]: pc };
       try {
         const localSdp = await pc.createOffer({
@@ -141,19 +162,12 @@ function MeetingRoom({ location }) {
         });
         console.log("create offer success");
         await pc.setLocalDescription(new RTCSessionDescription(localSdp));
-        // --------------------------------------------------------------------------------
-        // socketRef.current.emit("offer", {
-        //   sdp: localSdp,
-        //   offerSendID: socketRef.current.id,
-        //   offerSendEmail: "offerSendSample@sample.com",
-        //   offerReceiveID: user.id,
-        // });
         const msgJSON = JSON.stringify({
           userId: userId,
           roomId: roomId,
           receiverId: user.userId,
-          type:"offer",
-          sdp: localSdp
+          type: "offer",
+          sdp: localSdp,
         });
         socketRef.current.send(msgJSON);
       } catch (e) {
@@ -177,19 +191,13 @@ function MeetingRoom({ location }) {
         offerToReceiveAudio: true,
       });
       await pc.setLocalDescription(new RTCSessionDescription(localSdp));
-      // --------------------------------------------------------------
-      // socketRef.current.emit("answer", {
-      //   sdp: localSdp,
-      //   answerSendID: socketRef.current.id,
-      //   answerReceiveID: offerSendID,
-      // });
       const msgJSON = JSON.stringify({
         userId: userId,
         receiverId: receiverId,
         roomId: roomId,
         type: "answer",
-        sdp: localSdp
-      })
+        sdp: localSdp,
+      });
 
       socketRef.current.send(msgJSON);
     } catch (e) {
@@ -224,7 +232,7 @@ function MeetingRoom({ location }) {
   useEffect(() => {
     socketRef.current = new WebSocket("ws://localhost:8080/meeting");
     getLocalStream();
-
+    getLocalScreenStream();
     socketRef.current.onmessage = function (event) {
       var data = JSON.parse(event.data);
       var type = data.type;
@@ -247,9 +255,13 @@ function MeetingRoom({ location }) {
           });
           break;
         case "getCandidate":
-          getCandidate({ candidate: data.candidate, socketId: data.socketId, receiverId: data.receiverId });
+          getCandidate({
+            candidate: data.candidate,
+            socketId: data.socketId,
+            receiverId: data.receiverId,
+          });
           break;
-        case "user_exit":
+        case "userExit":
           userExit(data.socketId);
           break;
         default:
@@ -274,9 +286,27 @@ function MeetingRoom({ location }) {
     <div>
       <p>RoomID : {roomId}</p>
       <p>UserID : {userId}</p>
-
-      <div id="video">
-        <video id="localVideo" ref={localVideoRef} autoPlay playsInline></video>
+      {localVideoState ? (
+        <div id="video">
+          <video
+            id="localVideo"
+            ref={localVideoRef}
+            autoPlay
+            playsInline
+            height="240px"
+            width="320px"
+          ></video>
+        </div>
+      ) : (
+        <div></div>
+      )}
+      <div id="screenVideo">
+        <video
+          id="screenVideo"
+          ref={localScreenVideoRef}
+          autoPlay
+          playsInline
+        ></video>
       </div>
       <div id="controlPanel">
         <button id="videoBtn" onClick={handleVideoState}>
@@ -285,7 +315,9 @@ function MeetingRoom({ location }) {
         <button id="audioBtn" onClick={handleAudioState}>
           {localAudioState ? "Audio On" : "Audio Off"}
         </button>
-        <button id="exitBtn">Exit</button>
+        <button id="exitBtn" onClick={leaveMeetingRoom}>
+          Exit
+        </button>
       </div>
       <div id="remodeVideo">
         {users.map((user, index) => (
