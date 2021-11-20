@@ -7,10 +7,12 @@ const peerConnectionConfig = {
     { urls: "stun:stun.l.google.com:19302" },
   ],
 };
-function MeetingRoom({ location }) {
+
+function MeetingRoom({ history, location }) {
   const [users, setUsers] = useState([]);
   const [localVideoState, setLocalVideoState] = useState(true);
   const [localAudioState, setLocalAudioState] = useState(true);
+  const [shareLocalScreen, setShareLocalScreen] = useState(false);
   const pcsRef = useRef({});
   const socketRef = useRef(null);
   const localVideoRef = useRef(null);
@@ -32,7 +34,7 @@ function MeetingRoom({ location }) {
     } else {
       console.log("video on");
       localVideoTracks.current.forEach((track) =>
-        localStreamRef.current.addTrack(track)
+        localStreamRef.current.addTrack(track, localStreamRef.current)
       );
     }
   };
@@ -51,7 +53,48 @@ function MeetingRoom({ location }) {
       type: "disconnect",
     });
     socketRef.current.send(msgJSON);
-    
+    if (socketRef.current) socketRef.current.close();
+    if (localVideoRef.current)
+      localVideoRef.current.srcObject
+        .getTracks()
+        .forEach((track) => track.stop());
+    localVideoRef.current = null;
+    if (localStreamRef.current) localStreamRef.current = null;
+    if (localScreenVideoRef.current)
+      localScreenVideoRef.current.srcObject
+        .getTracks()
+        .forEach((track) => track.stop());
+    localScreenVideoRef.current = null;
+    if (localScreenStreamRef.current) localScreenStreamRef.current = null;
+    history.goBack();
+  };
+
+  const changeStream = () => {
+    setShareLocalScreen(!shareLocalScreen);
+    if (!shareLocalScreen) {
+      console.log("shareLocalScreen", shareLocalScreen);
+      if (!localScreenStreamRef.current) {
+        console.log("getLocalScreenStream");
+        getLocalScreenStream();
+      }
+      for (var key in pcsRef.current) {
+        console.log(key, pcsRef.current[key]);
+        var pc = pcsRef.current[key];
+        var sender = pc.getSenders().find((s) => {
+          return s.track.kind === "video";
+        });
+        sender.replaceTrack(localScreenStreamRef.current.getTracks()[0]);
+      }
+    } else {
+      for (var key in pcsRef.current) {
+        console.log(key, pcsRef.current[key]);
+        var pc = pcsRef.current[key];
+        var sender = pc.getSenders().find((s) => {
+          return s.track.kind === "video";
+        });
+        sender.replaceTrack(localStreamRef.current.getTracks().find(track => track.kind === 'video'));
+      }
+    }
   };
 
   const getLocalStream = useCallback(async () => {
@@ -88,7 +131,7 @@ function MeetingRoom({ location }) {
       });
       localScreenStreamRef.current = localScreenStream;
       if (localScreenVideoRef.current)
-      localScreenVideoRef.current.srcObject = localScreenStream;
+        localScreenVideoRef.current.srcObject = localScreenStream;
     } catch (e) {
       console.log(`getUserMedia error: ${e}`);
     }
@@ -206,27 +249,37 @@ function MeetingRoom({ location }) {
   }
 
   function getAnswer(data) {
-    const { sdp, socketId, receiverId } = data;
+    const { sdp, socketId } = data;
     console.log("get answer");
     const pc = pcsRef.current[socketId];
     if (!pc) return;
     pc.setRemoteDescription(new RTCSessionDescription(sdp));
   }
 
-  async function getCandidate(data) {
-    const { candidate, socketId, receiverId } = data;
+  const getCandidate = async (data) => {
+    const { candidate, socketId } = data;
     console.log("get candidate");
     const pc = pcsRef.current[socketId];
     if (!pc) return;
     await pc.addIceCandidate(new RTCIceCandidate(candidate));
     console.log("candidate add success");
-  }
+  };
 
   function userExit(socketId) {
     if (!pcsRef.current[socketId]) return;
+    pcsRef.current[socketId].onicecandidate = null;
+    pcsRef.current[socketId].ontrack = null;
+    pcsRef.current[socketId].onnegotiationneeded = null;
+    pcsRef.current[socketId].oniceconnectionstatechange = null;
+    pcsRef.current[socketId].onsignalingstatechange = null;
+    pcsRef.current[socketId].onicegatheringstatechange = null;
+    pcsRef.current[socketId].onnotificationneeded = null;
+    pcsRef.current[socketId].onremovetrack = null;
     pcsRef.current[socketId].close();
     delete pcsRef.current[socketId];
-    setUsers((oldUsers) => oldUsers.filter((user) => user.userId !== socketId));
+    setUsers((oldUsers) =>
+      oldUsers.filter((user) => user.socketId !== socketId)
+    );
   }
 
   useEffect(() => {
@@ -286,6 +339,7 @@ function MeetingRoom({ location }) {
     <div>
       <p>RoomID : {roomId}</p>
       <p>UserID : {userId}</p>
+      {/* TODO: 껏다켜면 Stream 이 먹히는 것 같은 현상 해결해야함 */}
       {localVideoState ? (
         <div id="video">
           <video
@@ -318,10 +372,18 @@ function MeetingRoom({ location }) {
         <button id="exitBtn" onClick={leaveMeetingRoom}>
           Exit
         </button>
+        <button id="changeBtn" onClick={changeStream}>
+          Change Video
+        </button>
       </div>
       <div id="remodeVideo">
         {users.map((user, index) => (
-          <Video key={index} userId={user.userId} stream={user.stream} />
+          <Video
+            key={index}
+            socketId={user.socketId}
+            userId={user.userId}
+            stream={user.stream}
+          />
         ))}
       </div>
     </div>

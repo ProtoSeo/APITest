@@ -22,7 +22,7 @@ const UserLabel = styled.p`
 	left: 0px;
 `;
 
-const Video = ({ userId, stream, muted }) => {
+const Video = ({ userId, socketId, stream, muted }) => {
 	const ref = useRef(null);
 	const [isMuted, setIsMuted] = useState(false);
 
@@ -34,7 +34,7 @@ const Video = ({ userId, stream, muted }) => {
 	return (
 		<Container>
 			<VideoContainer ref={ref} muted={isMuted} autoPlay />
-      <UserLabel>{userId}</UserLabel>
+      <UserLabel>{userId}, {socketId}</UserLabel>
 		</Container>
 	);
 };
