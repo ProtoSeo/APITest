@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import Video from "./Video";
 
+// TODO: Socket이 꺼지는 이유??
 const peerConnectionConfig = {
   iceServers: [
     { urls: "stun:stun.stunprotocol.org:3478" },
@@ -8,13 +9,13 @@ const peerConnectionConfig = {
   ],
 };
 
-function MeetingRoom({ history, location }) {
+function MeetingRoomTest({ history, location }) {
   const [users, setUsers] = useState([]);
   const [localVideoState, setLocalVideoState] = useState(true);
   const [localAudioState, setLocalAudioState] = useState(true);
   const [shareLocalScreen, setShareLocalScreen] = useState(false);
   const pcsRef = useRef({});
-  const socketRef = useRef(null);
+  const socket = new WebSocket("ws://localhost:8080/meeting");
   const localVideoRef = useRef(null);
   const localScreenVideoRef = useRef(null);
   const localStreamRef = useRef(null);
@@ -31,19 +32,19 @@ function MeetingRoom({ history, location }) {
       localVideoTracks.current.forEach((track) =>
         localStreamRef.current.removeTrack(track)
       );
+      localVideoRef.current.style.display = "none";
     } else {
       console.log("video on");
       localVideoTracks.current.forEach((track) =>
         localStreamRef.current.addTrack(track)
       );
-    }  
+      localVideoRef.current.style.display = "inline";
+    }
   };
 
-  // TODO:
   const handleAudioState = () => {
     setLocalAudioState(!localAudioState);
-    localVideoRef.current.muted = !localAudioState;
-    console.log(localAudioState, localVideoRef.current.muted);
+    localStreamRef.current.getAudioTracks()[0].enabled = !localAudioState;
   };
 
   const leaveMeetingRoom = () => {
@@ -52,8 +53,8 @@ function MeetingRoom({ history, location }) {
       roomId: roomId,
       type: "disconnect",
     });
-    socketRef.current.send(msgJSON);
-    if (socketRef.current) socketRef.current.close();
+    socket.send(msgJSON);
+    if (socket) socket.close();
     if (localVideoRef.current)
       localVideoRef.current.srcObject
         .getTracks()
@@ -72,23 +73,29 @@ function MeetingRoom({ history, location }) {
   const changeStream = () => {
     setShareLocalScreen(!shareLocalScreen);
     if (!shareLocalScreen) {
-      console.log("shareLocalScreen", shareLocalScreen);
-      if (!localScreenStreamRef.current) {
-        console.log("getLocalScreenStream");
-        getLocalScreenStream();
-      }
-      for (var key in pcsRef.current) {
-        var sender = pcsRef.current[key].getSenders().find((s) => {
-          return s.track.kind === "video";
-        });
-        sender.replaceTrack(localScreenStreamRef.current.getTracks()[0]);
-      }
+      getLocalScreenStream().then(() => {
+        localScreenVideoRef.current.style.display = 'inline';
+        for (var key in pcsRef.current) {
+          var sender = pcsRef.current[key].getSenders().find((s) => {
+            return s.track.kind === "video";
+          });
+          sender.replaceTrack(localScreenStreamRef.current.getTracks()[0]);
+        }
+      });
     } else {
+      localScreenVideoRef.current.srcObject
+        .getTracks()
+        .forEach((track) => track.stop());
+      localScreenVideoRef.current.style.display = 'none';
       for (var key in pcsRef.current) {
         var sender = pcsRef.current[key].getSenders().find((s) => {
           return s.track.kind === "video";
         });
-        sender.replaceTrack(localStreamRef.current.getTracks().find(track => track.kind === 'video'));
+        sender.replaceTrack(
+          localStreamRef.current
+            .getTracks()
+            .find((track) => track.kind === "video")
+        );
       }
     }
   };
@@ -104,13 +111,13 @@ function MeetingRoom({ history, location }) {
       });
       localStreamRef.current = localStream;
       if (localVideoRef.current) localVideoRef.current.srcObject = localStream;
-      if (!socketRef.current) return;
+      if (!socket) return;
       const msgJSON = JSON.stringify({
         roomId: roomId,
         userId: userId,
         type: "join",
       });
-      socketRef.current.send(msgJSON);
+      socket.send(msgJSON);
     } catch (e) {
       console.log(`getUserMedia error: ${e}`);
     }
@@ -139,7 +146,7 @@ function MeetingRoom({ history, location }) {
       const pc = new RTCPeerConnection(peerConnectionConfig);
 
       pc.onicecandidate = (e) => {
-        if (!(socketRef.current && e.candidate)) return;
+        if (!(socket && e.candidate)) return;
         console.log("onicecandidate");
         const msgJSON = JSON.stringify({
           userId: userId,
@@ -148,7 +155,7 @@ function MeetingRoom({ history, location }) {
           type: "candidate",
           candidate: e.candidate,
         });
-        socketRef.current.send(msgJSON);
+        socket.send(msgJSON);
       };
 
       pc.oniceconnectionstatechange = (e) => {
@@ -178,7 +185,6 @@ function MeetingRoom({ history, location }) {
       } else {
         console.log("no local stream");
       }
-
       return pc;
     } catch (e) {
       console.error(e);
@@ -191,7 +197,7 @@ function MeetingRoom({ history, location }) {
     allUsers.forEach(async (user) => {
       if (!localStreamRef.current) return;
       const pc = createPeerConnection(user.socketId, user.userId); // socketId, email
-      if (!(pc && socketRef.current)) return;
+      if (!(pc && socket)) return;
       console.log(pcsRef.current);
       pcsRef.current = { ...pcsRef.current, [user.socketId]: pc };
       try {
@@ -208,7 +214,7 @@ function MeetingRoom({ history, location }) {
           type: "offer",
           sdp: localSdp,
         });
-        socketRef.current.send(msgJSON);
+        socket.send(msgJSON);
       } catch (e) {
         console.error(e);
       }
@@ -220,7 +226,7 @@ function MeetingRoom({ history, location }) {
     console.log("get offer");
     if (!localStreamRef.current) return;
     const pc = createPeerConnection(socketId, receiverId);
-    if (!(pc && socketRef.current)) return;
+    if (!(pc && socket)) return;
     pcsRef.current = { ...pcsRef.current, [socketId]: pc };
     try {
       await pc.setRemoteDescription(new RTCSessionDescription(sdp));
@@ -238,7 +244,7 @@ function MeetingRoom({ history, location }) {
         sdp: localSdp,
       });
 
-      socketRef.current.send(msgJSON);
+      socket.send(msgJSON);
     } catch (e) {
       console.error(e);
     }
@@ -279,10 +285,8 @@ function MeetingRoom({ history, location }) {
   }
 
   useEffect(() => {
-    socketRef.current = new WebSocket("ws://localhost:8080/meeting");
     getLocalStream();
-    getLocalScreenStream();
-    socketRef.current.onmessage = function (event) {
+    socket.onmessage = function (event) {
       var data = JSON.parse(event.data);
       var type = data.type;
       switch (type) {
@@ -319,8 +323,8 @@ function MeetingRoom({ history, location }) {
     };
 
     return () => {
-      if (socketRef.current) {
-        socketRef.current.close();
+      if (socket) {
+        socket.close();
       }
       users.forEach((user) => {
         if (!pcsRef.current[user.socketId]) return;
@@ -335,27 +339,24 @@ function MeetingRoom({ history, location }) {
     <div>
       <p>RoomID : {roomId}</p>
       <p>UserID : {userId}</p>
-      {/* TODO: 껏다켜면 Stream 이 먹히는 것 같은 현상 해결해야함 */}
-      {localVideoState ? (
-        <div id="video">
-          <video
-            id="localVideo"
-            ref={localVideoRef}
-            autoPlay
-            playsInline
-            height="240px"
-            width="320px"
-          ></video>
-        </div>
-      ) : (
-        <div></div>
-      )}
+      <div id="video">
+        <video
+          id="localVideo"
+          ref={localVideoRef}
+          autoPlay
+          playsInline
+          height="240px"
+          width="320px"
+        ></video>
+      </div>
+
       <div id="screenVideo">
         <video
           id="screenVideo"
           ref={localScreenVideoRef}
           autoPlay
           playsInline
+          style={{display:'none'}}
         ></video>
       </div>
       <div id="controlPanel">
@@ -386,4 +387,4 @@ function MeetingRoom({ history, location }) {
   );
 }
 
-export default MeetingRoom;
+export default MeetingRoomTest;

@@ -5,6 +5,7 @@ import Signup from "./Signup";
 import Upload from "./Upload";
 import UploadLecture from "./UploadLecture";
 import MeetingRoom from "./MeetingRoom";
+import MeetingRoomTest from "./MeetingRoomTest";
 import CreateRoom from "./CreateRoom";
 import Notification from "./Notification";
 import Chatting from "./Chatting"
@@ -19,6 +20,7 @@ class App extends Component{
             <Route path="/upload-lecture" component={UploadLecture}/>
             <Route path="/create-room" component={CreateRoom}/>
             <Route path="/meeting-room" component={MeetingRoom}/>
+            <Route path="/meeting-room-test" component={MeetingRoomTest}/>
             <Route path="/notifications" component={Notification}/>
             <Route path="/chatting" component={Chatting}/>
         </Switch>
