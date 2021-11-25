@@ -1,11 +1,16 @@
-import React, { useState, useEffect }  from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
-function Room({index, roomId, userId}){
+function Room({ index, roomId, userId }) {
   return (
-    <div>
-      <Link key={index} to={{ pathname: "/meeting-room", state: { roomId: roomId, userId: userId } }}>
+    <div key={index}>
+      <Link
+        to={{
+          pathname: "/meeting-room-test",
+          state: { roomId: roomId, userId: userId },
+        }}
+      >
         Room ID : {roomId}
       </Link>
     </div>
@@ -15,17 +20,17 @@ function CreateRoom() {
   const [roomIds, setRoomIds] = useState([]);
   const [roomId, setRoomId] = useState(0);
   const [userId, setUserId] = useState(0);
-  
+
   const handleRoomId = (e) => {
-    setRoomId(e.target.value)
-  }
+    setRoomId(e.target.value);
+  };
   const handleUserId = (e) => {
-    setUserId(e.target.value)
-  }
+    setUserId(e.target.value);
+  };
   const addRoomId = () => {
     axios
-      .post("http://localhost:8080/api/v1/rooms", null, { params:
-        {"room-id":roomId}
+      .post("http://localhost:8080/api/v1/rooms", null, {
+        params: { "room-id": roomId },
       })
       .then((res) => console.log(res))
       .catch((errors) => console.log(errors));
@@ -37,11 +42,11 @@ function CreateRoom() {
     axios
       .get("http://localhost:8080/api/v1/rooms")
       .then((res) => {
-        setRoomIds(res.data)
-        console.log(res)
+        setRoomIds(res.data);
+        console.log(res);
       })
       .catch((errors) => console.log(errors));
-  },[])
+  }, []);
   return (
     <div>
       <div>
@@ -53,7 +58,7 @@ function CreateRoom() {
         />
         <button onClick={addRoomId}>Create Select Room Number</button>
       </div>
-      <hr/>
+      <hr />
       <div>
         <label>UserID : </label>
         <input
@@ -64,7 +69,7 @@ function CreateRoom() {
         />
       </div>
       <div>
-        {roomIds.map((roomId, index) => Room({index, roomId, userId}))}
+        {roomIds.map((roomId, index) => Room({ index, roomId, userId }))}
       </div>
     </div>
   );
