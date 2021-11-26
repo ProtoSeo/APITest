@@ -121,6 +121,7 @@ function MeetingRoomTest({ history, location }) {
     } catch (e) {
       console.log(`getUserMedia error: ${e}`);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getLocalScreenStream = useCallback(async () => {

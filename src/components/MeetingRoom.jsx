@@ -77,15 +77,15 @@ function MeetingRoom({ history, location }) {
         console.log("getLocalScreenStream");
         getLocalScreenStream();
       }
-      for (var key in pcsRef.current) {
-        var sender = pcsRef.current[key].getSenders().find((s) => {
+      for (let key in pcsRef.current) {
+        let sender = pcsRef.current[key].getSenders().find((s) => {
           return s.track.kind === "video";
         });
         sender.replaceTrack(localScreenStreamRef.current.getTracks()[0]);
       }
     } else {
-      for (var key in pcsRef.current) {
-        var sender = pcsRef.current[key].getSenders().find((s) => {
+      for (let key in pcsRef.current) {
+        let sender = pcsRef.current[key].getSenders().find((s) => {
           return s.track.kind === "video";
         });
         sender.replaceTrack(localStreamRef.current.getTracks().find(track => track.kind === 'video'));
@@ -114,6 +114,7 @@ function MeetingRoom({ history, location }) {
     } catch (e) {
       console.log(`getUserMedia error: ${e}`);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getLocalScreenStream = useCallback(async () => {
