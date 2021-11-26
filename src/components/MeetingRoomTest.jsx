@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import Video from "./Video";
 
-// TODO: Socket이 꺼지는 이유??
+// TODO: Socket이 꺼지는 이유?? -> Test 필요
+// TODO: 오랜 시간 켜놓기(TimeOut?)
 const peerConnectionConfig = {
   iceServers: [
     { urls: "stun:stun.stunprotocol.org:3478" },
@@ -22,22 +23,13 @@ function MeetingRoomTest({ history, location }) {
   const localScreenStreamRef = useRef(null);
   const userId = location.state.userId;
   const roomId = location.state.roomId;
-  const localVideoTracks = useRef(null);
 
   const handleVideoState = () => {
     setLocalVideoState(!localVideoState);
+    localStreamRef.current.getVideoTracks()[0].enabled = !localVideoState;
     if (localVideoState) {
-      console.log("video off");
-      localVideoTracks.current = localStreamRef.current.getVideoTracks();
-      localVideoTracks.current.forEach((track) =>
-        localStreamRef.current.removeTrack(track)
-      );
       localVideoRef.current.style.display = "none";
     } else {
-      console.log("video on");
-      localVideoTracks.current.forEach((track) =>
-        localStreamRef.current.addTrack(track)
-      );
       localVideoRef.current.style.display = "inline";
     }
   };
@@ -61,7 +53,7 @@ function MeetingRoomTest({ history, location }) {
         .forEach((track) => track.stop());
     localVideoRef.current = null;
     if (localStreamRef.current) localStreamRef.current = null;
-    if (localScreenVideoRef.current)
+    if (shareLocalScreen)
       localScreenVideoRef.current.srcObject
         .getTracks()
         .forEach((track) => track.stop());
