@@ -9,12 +9,15 @@ import MeetingRoomTest from "./MeetingRoomTest";
 import CreateRoom from "./CreateRoom";
 import Notification from "./Notification";
 import Chatting from "./Chatting"
-
+import Home from "./Home"
+import Profile from "./Profile"
+import OAuth2RedirectHandler from "./OAuth2Handler"
 class App extends Component{
   render() {
     return (
         <Switch>
-            <Route exact path="/" component={Login}/>
+            <Route exact path="/" component={Home}/>
+            <Route path="/login" component={Login}/>
             <Route path="/signup" component={Signup}/>
             <Route path="/upload" component={Upload}/>
             <Route path="/upload-lecture" component={UploadLecture}/>
@@ -23,6 +26,8 @@ class App extends Component{
             <Route path="/meeting-room-test" component={MeetingRoomTest}/>
             <Route path="/notifications" component={Notification}/>
             <Route path="/chatting" component={Chatting}/>
+            <Route path="/profile" component={Profile}/>
+            <Route path="/oauth2/redirect" component={OAuth2RedirectHandler}></Route>  
         </Switch>
     );
 }
