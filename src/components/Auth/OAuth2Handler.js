@@ -1,5 +1,5 @@
 import React from "react";
-import { ACCESS_TOKEN, USER_ID, UUID } from "../constants";
+import { ACCESS_TOKEN, USER_ID, UUID } from "../../constants";
 import { Redirect } from "react-router-dom";
 
 function OAuth2Handler({location}) {

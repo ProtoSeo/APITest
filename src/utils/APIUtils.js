@@ -40,3 +40,19 @@ export const login = async ({ email, password }) => {
     return null;
   }
 };
+
+export const getProfile = async ({ userId }) => {
+  try {
+    const response = await axios({
+      method: 'GET',
+      url: API_BASE_URL + `/api/v1/users/${userId}/profile`,
+      headers: {
+        Authorization: localStorage.getItem("access_token"),
+      },
+    });
+    return response.data;
+  } catch (error) {
+    window.alert(error.response.data.error_msg);
+    return null;
+  }
+};

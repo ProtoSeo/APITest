@@ -1,17 +1,17 @@
 import React, { Component } from "react";
 import { Route, Switch } from "react-router-dom";
-import Login from "./Login";
-import Signup from "./Signup";
+import Login from "./Auth/Login";
+import Signup from "./Auth/Signup";
 import Upload from "./Upload";
 import UploadLecture from "./UploadLecture";
-import MeetingRoom from "./MeetingRoom";
-import MeetingRoomTest from "./MeetingRoomTest";
-import CreateRoom from "./CreateRoom";
+import MeetingRoom from "./StudyRoom/MeetingRoom";
+import MeetingRoomTest from "./StudyRoom/MeetingRoomTest";
+import CreateRoom from "./StudyRoom/CreateRoom";
 import Notification from "./Notification";
 import Chatting from "./Chatting"
 import Home from "./Home"
-import Profile from "./Profile"
-import OAuth2RedirectHandler from "./OAuth2Handler"
+import Profile from "./Profile/Profile"
+import OAuth2RedirectHandler from "./Auth/OAuth2Handler"
 class App extends Component{
   render() {
     return (

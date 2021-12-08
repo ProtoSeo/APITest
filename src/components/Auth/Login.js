@@ -5,10 +5,10 @@ import {
   ACCESS_TOKEN,
   UUID,
   USER_ID,
-} from "../constants";
-import { login } from "../utils/APIUtils";
-import googleLogo from "../img/google-logo.png";
-import githubLogo from "../img/github-logo.png";
+} from "../../constants";
+import { login } from "../../utils/APIUtils";
+import googleLogo from "../../img/google-logo.png";
+import githubLogo from "../../img/github-logo.png";
 
 function Login() {
   const [email, setEmail] = useState("");
