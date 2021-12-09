@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import axios from "axios";
+import { signup } from "../../utils/APIUtils";
 
-function Signup() {
+function Signup({ history }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nickname, setNickname] = useState("");
@@ -19,14 +19,12 @@ function Signup() {
   };
 
   const onClickSignup = () => {
-    axios
-      .post("http://localhost:8080/api/v1/signup", {
-        email: email,
-        nickname: nickname,
-        password: password,
-      })
-      .then((res) => console.log(res))
-      .catch((errors) => console.log(errors));
+    signup({ email, nickname, password }).then((response) => {
+      if (response) {
+        alert("회원가입 되었습니다.");
+        history.push('/login');
+      }
+    })
   };
 
   return (

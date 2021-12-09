@@ -9,8 +9,9 @@ import {
 import { login } from "../../utils/APIUtils";
 import googleLogo from "../../img/google-logo.png";
 import githubLogo from "../../img/github-logo.png";
+import { Link } from "react-router-dom"
 
-function Login() {
+function Login({location, history}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -23,12 +24,12 @@ function Login() {
   };
 
   const onClickLogin = () => {
-    console.log("email: " + email + " passowrd:" + password);
     login({ email, password }).then((response) => {
       if (response) {
         localStorage.setItem(ACCESS_TOKEN, response.access_token);
         localStorage.setItem(UUID, response.uuid);
-        localStorage.setItem(USER_ID, response.uuid);
+        localStorage.setItem(USER_ID, response.user_id);
+        history.push('/profile')
       }
     });
   };
@@ -58,6 +59,15 @@ function Login() {
         <div>
           <button type="button" onClick={onClickLogin}>
             Login
+          </button>
+          <button type="button">
+            <Link
+              to={{
+                pathname: "/signup",
+                state: { from: location },
+              }}>
+              Signup
+            </Link>
           </button>
         </div>
       </form>
