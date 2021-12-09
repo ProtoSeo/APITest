@@ -24,6 +24,25 @@ const request = (options) => {
     );
 };
 
+export const signup = async ({ email, nickname, password }) => {
+  try {
+    const response = await axios({
+      method: 'POST',
+      url: API_BASE_URL + '/api/v1/signup',
+      data: {
+        email,
+        nickname,
+        password,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.log("signup error")
+    window.alert(error.response.data.error_msg);
+    return null;
+  }
+};
+
 export const login = async ({ email, password }) => {
   try {
     const response = await axios({
@@ -41,13 +60,15 @@ export const login = async ({ email, password }) => {
   }
 };
 
-export const getProfile = async ({ userId }) => {
+export const logout = async ({email, accessToken, uuid}) => {
   try {
     const response = await axios({
-      method: 'GET',
-      url: API_BASE_URL + `/api/v1/users/${userId}/profile`,
-      headers: {
-        Authorization: localStorage.getItem("access_token"),
+      method: 'POST',
+      url: '/v1/logout',
+      data: {
+        email,
+        uuid,
+        access_token: accessToken,
       },
     });
     return response.data;
