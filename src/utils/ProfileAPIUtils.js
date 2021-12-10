@@ -1,16 +1,9 @@
-import { API_BASE_URL, ACCESS_TOKEN } from '../constants';
+import { API_BASE_URL, ACCESS_TOKEN, USER_ID } from '../constants';
 import axios from 'axios';
 
 export const getProfile = async (userId) => {
   try {
-    const headers = new Headers({ "Content-Type": "application/json" });
-  
-    if(localStorage.getItem(ACCESS_TOKEN)) {
-      headers.append(
-        "Authorization",
-        "Bearer " + localStorage.getItem(ACCESS_TOKEN)
-      );
-    }
+    const headers = createAccessTokenHeader()
 
     const response = await axios({
       method: 'GET',
@@ -26,14 +19,7 @@ export const getProfile = async (userId) => {
 
 export const addProject = async ({userId, project}) => {
   try {
-    const headers = new Headers({ "Content-Type": "application/json" });
-  
-    if(localStorage.getItem(ACCESS_TOKEN)) {
-      headers.append(
-        "Authorization",
-        "Bearer " + localStorage.getItem(ACCESS_TOKEN)
-      );
-    }
+    const headers = createAccessTokenHeader()
 
     const response = await axios({
       method: 'POST',
@@ -48,3 +34,50 @@ export const addProject = async ({userId, project}) => {
     return null;
   }
 };
+
+export const getSkillList = async () => {
+  try {
+    const headers = createAccessTokenHeader()
+
+    const response = await axios({
+      method: 'GET',
+      url: API_BASE_URL + `/api/v1/skills`,
+      headers
+    });
+    return response.data;
+  } catch (error) {
+    window.alert(error.response.data.error_msg);
+    return null;
+  }
+}
+
+export const addUserSkill = async (skillName) => {
+  try {
+    const userId = localStorage.getItem(USER_ID);
+    const headers = createAccessTokenHeader()
+
+    const response = await axios({
+      method: 'PUT',
+      url: API_BASE_URL + `/api/v1/users/${userId}/skills`,
+      data:{'skill_name':skillName},
+      headers
+    });
+    return response.data;
+  } catch (error) {
+    window.alert(error.response.data.error_msg);
+    return null;
+  }
+}
+
+const createAccessTokenHeader = () => {
+  const headers = new Headers({ "Content-Type": "application/json" });
+  
+  if(localStorage.getItem(ACCESS_TOKEN)) {
+    headers.append(
+      "Authorization",
+      "Bearer " + localStorage.getItem(ACCESS_TOKEN)
+    );
+  }
+
+  return headers;
+}

@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+import React, {useState, uesEffect } from 'react';
+import { useEffect } from 'react/cjs/react.development';
 import styled from 'styled-components';
 import { USER_ID } from '../../constants';
 import { addProject } from '../../utils/ProfileAPIUtils'
@@ -38,7 +39,7 @@ const ModalSaveBtn = styled.button`
   transform: translate(-50%, -50%);
 `;
 
-function ProjectModal({changeProjectModalState}) {
+function ProjectModal({changeState,data}) {
   const [title, setTitle] = useState("")
   const [introduce, setIntroduce] = useState("")
   const [content, setContent] = useState("")
@@ -47,6 +48,10 @@ function ProjectModal({changeProjectModalState}) {
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
   
+  useEffect(()=>{
+
+  },[])
+
   const saveProject = () => {
     const userId = localStorage.getItem(USER_ID);
     const project = {
@@ -62,34 +67,19 @@ function ProjectModal({changeProjectModalState}) {
     addProject({userId, project }).then((response) =>{
       if(response) {
         window.alert("정상적으로 저장 되었습니다.")
-        changeProjectModalState()
+        changeState()
       }
     })
   }
 
-  const handleTitle = (e) => {
-    setTitle(e.target.value);
-  };
-  const handleIntroduce = (e) => {
-    setIntroduce(e.target.value);
-  };
-  const handleContent = (e) => {
-    setContent(e.target.value);
-  };
-  const handleDeployUrl = (e) => {
-    setDeployUrl(e.target.value);
-  };
-  const handleGithubUrl = (e) => {
-    setGithubUrl(e.target.value);
-  };
-  const handleStartDate = (e) => {
-    console.log(startDate)
-    setStartDate(e.target.value);
-  };
-  const handleEndDate = (e) => {
-    console.log(endDate)
-    setEndDate(e.target.value);
-  };
+  const handleTitle = (e) => setTitle(e.target.value);
+  const handleIntroduce = (e) => setIntroduce(e.target.value);
+  const handleContent = (e) => setContent(e.target.value);
+  const handleDeployUrl = (e) => setDeployUrl(e.target.value);
+  const handleGithubUrl = (e) => setGithubUrl(e.target.value);
+  const handleStartDate = (e) => setStartDate(e.target.value);
+  const handleEndDate = (e) => setEndDate(e.target.value);
+
   return (
     <ProjectUpdateModalContainer>
       <ProjectUpdateModal>
@@ -152,7 +142,7 @@ function ProjectModal({changeProjectModalState}) {
           
         </form>
         <ModalSaveBtn onClick={saveProject}>Save</ModalSaveBtn>
-        <ModalCloseBtn onClick={changeProjectModalState}>Close</ModalCloseBtn>
+        <ModalCloseBtn onClick={changeState}>Close</ModalCloseBtn>
       </ProjectUpdateModal>
     </ProjectUpdateModalContainer>
   );

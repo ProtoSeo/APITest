@@ -1,4 +1,4 @@
-import React , { useState , useEffect }from "react";
+import React, { useState, useEffect } from "react";
 
 function ProfileUserSkill(skill) {
   // const [skillId, setSkillId] = useState(0);
@@ -13,9 +13,13 @@ function ProfileUserSkill(skill) {
   //   setTextColor(skill.text_color)
   // },[]);
 
-  return (<ul>
-    <li>name : {skill.skill_name}</li>
-  </ul>);
+  return (
+    <div key={skill.skill_id}>
+      <ul>
+        <li>name : {skill.skill_name}</li>
+      </ul>
+    </div>
+  );
 }
 
 export default ProfileUserSkill;

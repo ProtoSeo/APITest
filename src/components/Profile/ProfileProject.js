@@ -1,12 +1,6 @@
-import React ,{useState, useEffect} from "react";
+import React from "react";
 
-function ProfileProject(id, project) {
-  // const [projectId, setProjectId] = useState(0);
-  // const [title, setTitle] = useState("");
-  // const [introduce, setIntroduce] = useState("");
-  // const [content, setContent] = useState("");
-  // const [textColor, setTextColor] = useState("");
-  
+function ProfileProject(id, project, changeProjectUpdateState) {
 
   return (
     <div key={id}>
@@ -19,7 +13,8 @@ function ProfileProject(id, project) {
         <li>deployUrl : {project.deploy_url}</li>
         <li>startDate : {project.start_date}</li>
         <li>endDate : {project.end_date}</li>
-        <button>change</button>
+        <button >change</button>
+        <button>delete</button>
       </ul>
     </div>
   );
