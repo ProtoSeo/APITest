@@ -8,6 +8,9 @@ function Home() {
         <Link to="/login">Login</Link>
       </div>
       <div>
+        <Link to="/pre-registrations">Pre Registration</Link>
+      </div>
+      <div>
         <Link to="/signup">Signup</Link>
       </div>
       <div>

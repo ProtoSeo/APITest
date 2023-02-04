@@ -77,3 +77,19 @@ export const logout = async ({email, accessToken, uuid}) => {
     return null;
   }
 };
+
+export const preRegistration = async ({ email }) => {
+  try {
+    const response = await axios({
+      method: 'POST',
+      url: API_BASE_URL + '/api/v1/pre-registrations',
+      data: {
+        email,
+      },
+    });
+    return response.status;
+  } catch (error) {
+    window.alert("error");
+    return null;
+  }
+};
